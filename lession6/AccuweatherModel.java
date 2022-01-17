@@ -11,13 +11,14 @@ import java.io.IOException;
 import java.util.List;
 
 public class AccuweatherModel implements WeatherModel {
-    //http://dataservice.accuweather.com/forecasts/v1/daily/1day/349727
+    //http://dataservice.accuweather.com/forecasts/v1/daily/5day/349727
     private static final String PROTOKOL = "https";
     private static final String BASE_HOST = "dataservice.accuweather.com";
     private static final String FORECASTS = "forecasts";
     private static final String VERSION = "v1";
     private static final String DAILY = "daily";
     private static final String ONE_DAY = "1day";
+    private static final String FIVE_DAY = "5day";
     private static final String API_KEY = "uOiQ3CYOlfNos2VwvTo7CUGrdHYaWdcA";
     private static final String API_KEY_QUERY_PARAM = "apikey";
     private static final String LOCATIONS = "locations";
@@ -27,7 +28,7 @@ public class AccuweatherModel implements WeatherModel {
     private static final OkHttpClient okHttpClient = new OkHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private DataBaseRepository dataBaseRepository = new DataBaseRepository();
+
 
     public void getWeather(String selectedCity, Period period) throws IOException {
         switch (period) {
@@ -53,15 +54,31 @@ public class AccuweatherModel implements WeatherModel {
 
                 break;
             case FIVE_DAYS:
+                HttpUrl httpUrl2 = new HttpUrl.Builder()
+                        .scheme(PROTOKOL)
+                        .host(BASE_HOST)
+                        .addPathSegment(FORECASTS)
+                        .addPathSegment(VERSION)
+                        .addPathSegment(DAILY)
+                        .addPathSegment(FIVE_DAY)
+                        .addPathSegment(detectCityKey(selectedCity))
+                        .addQueryParameter(API_KEY_QUERY_PARAM, API_KEY)
+                        .build();
+
+                Request request1 = new Request.Builder()
+                        .url(httpUrl2)
+                        .build();
+                Response fiveDayForecastResponse = okHttpClient.newCall(request1).execute();
+                String weatherResponse1 = fiveDayForecastResponse.body().string();
+                System.out.println(weatherResponse1);
+
 
                 break;
         }
     }
 
-    @Override
-    public List<Weather> getSavedToDBWeather() {
-        return dataBaseRepository.getSavedToDBWeather();
-    }
+
+
 
     private String detectCityKey(String selectCity) throws IOException {
         //http://dataservice.accuweather.com/locations/v1/cities/autocomplete
